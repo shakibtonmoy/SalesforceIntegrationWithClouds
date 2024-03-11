@@ -1,0 +1,10 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global" >
+	<lightning:button label="Screen Record" onclick="{!c.clickAdd}"/>
+    <button id="stopScreenRecord">Stop Screen Record</button>
+    <lightning:button label="Audio Record" onclick="{!c.audioRecord}"/>
+    <button id="stopAudioRecord">Stop</button>
+    
+    <div>
+    	
+    </div>
+</aura:component>

@@ -1,0 +1,171 @@
+<apex:page standardController="Account">
+    <div style="padding:10px;border:1px solid;text-align:center">
+        <button id="startAudioRecord" style="font-size:18px;background:blue;color: aliceblue;padding:10px;border-radius:10px;">Start Audio</button>
+        <button id="stopAudioRecord" style="font-size:18px;background:red;color: aliceblue;padding:10px;border-radius:10px;">Stop Audio</button>
+    </div>
+    
+    <div style="padding:10px;border:1px solid;">
+        <audio id="audId" controls="true" preload="auto">
+            <source src="" type="audio/mpeg"/>
+        Your browser does not support the audio element.
+        </audio>
+    </div>
+    
+    <div style="padding:10px;border:1px solid;margin-top:20px;text-align:center">
+        <button id="startScreenRecord" style="font-size:18px;background:blue;color: aliceblue;padding:10px;border-radius:10px;">Start Screen Record</button>
+        <button id="stopScreenRecord" style="font-size:18px;background:red;color: aliceblue;padding:10px;border-radius:10px;">Stop Screen Record</button>
+    </div>
+    
+    <script>
+    document.getElementById("startAudioRecord").addEventListener("click", recordAudio);
+    document.getElementById("startScreenRecord").addEventListener("click", recordScreen);
+    
+    document.getElementById("stopAudioRecord").style.display="none";
+    
+    function recordAudio() {
+        document.getElementById("startAudioRecord").style.display="none";
+        document.getElementById("stopAudioRecord").style.display="block";
+        navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false
+        }).then(stream => {
+            
+            console.log('Got MediaStream:', stream);
+            alert('hh');
+            const tracks = stream.getTracks();
+            console.log(tracks);
+            
+            const recorder = new MediaRecorder(stream);
+            recorder.start();
+            
+            const buffer = [];
+            
+            recorder.addEventListener('dataavailable',(event) => {
+            buffer.push(event.data);
+            console.log('buffer push called');
+        })
+            
+        recorder.addEventListener('stop',() => {
+        const blob = new Blob(buffer,{
+        type:'audio/mpeg'
+        })
+        
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "recording.mp3";
+        a.click();
+        
+        // const recMediaFile = document.createElement('audio');
+        // recMediaFile.controls = true;
+        // const recURL = URL.createObjectURL(blob);
+        // recMediaFile.src = recURL;
+        
+        // document.getElementById('audId').append(recMediaFile);
+        
+        // var contentVersion = new sforce.SObject('ContentVersion');
+        // contentVersion.Title = 'audio recorder';
+        // contentVersion.PathOnClient = '/' + 'audio recorder';
+        // contentVersion.FirstPublishLocationId = '0015i000012cfdQAAQ';
+        // contentVersion.VersionData = blob;
+        
+        // var results = sforce.connection.create([contentVersion]);
+
+        blobToBase64(blob).then(result => {
+            var contentVersion = new sforce.SObject('ContentVersion');
+            contentVersion.Title = 'Recording.mp3';
+            contentVersion.PathOnClient = '/Recording.mp3';
+            contentVersion.FirstPublishLocationId = '001F900001ixrTz';
+            contentVersion.VersionData = result;
+
+            var results = sforce.connection.create([contentVersion]);
+            stop();
+        });
+        
+        
+        console.log('stop called');
+        alert('stop');
+    })
+    
+    document.getElementById("stopAudioRecord").addEventListener("click", myFunction);
+    
+    function myFunction() {
+        recorder.stop();
+        
+        document.getElementById("startAudioRecord").style.display="block";
+        document.getElementById("stopAudioRecord").style.display="none";
+    }
+    
+    });
+    }
+    
+    function recordScreen() {
+        navigator.mediaDevices.getDisplayMedia({
+            audio: true,
+            video: true
+        }).then(stream => {
+            //context = new (window.AudioContext || window.webkitAudioContext)();
+            //microphone = context.createMediaStreamSource(stream);
+            console.log('Got MediaStream:', stream);
+            const tracks = stream.getTracks();
+            console.log(tracks);
+            
+            const recorder = new MediaRecorder(stream);
+            recorder.start();
+            
+            const buffer = [];
+            
+            recorder.addEventListener('dataavailable',(event) => {
+            buffer.push(event.data);
+            console.log('buffer push called');
+        })
+            
+            recorder.addEventListener('stop',() => {
+            const blob = new Blob(buffer,{
+            type:'video/mp4'
+        })
+        
+        //const a = document.createElement('a');
+        //a.href = URL.createObjectURL(blob);
+        //a.download = "recording.mp4";
+        //a.click();
+        
+        
+        
+        /*var contentVersion = new sforce.SObject('ContentVersion');
+        contentVersion.Title = 'audio recorder';
+        contentVersion.PathOnClient = '/' + 'audio recorder';
+        contentVersion.FirstPublishLocationId = '0015i000012cfdQAAQ';
+        contentVersion.VersionData = blob;
+        
+        var results = sforce.connection.create([contentVersion]);
+        for (var i = 0; i < results.length; i++) {
+            if (results[i].getBoolean("success")) {
+                console.log('results[i]: '+results[i]);
+            }
+            else {
+                console.log('error: '+results[i]);
+            }
+        }*/
+        
+        console.log('stop called');
+    })
+    
+    document.getElementById("stopScreenRecord").addEventListener("click", myFunction);
+    
+    function myFunction() {
+        recorder.stop();
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve, _) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    }
+    
+    });
+    }
+    </script>
+    
+</apex:page>
