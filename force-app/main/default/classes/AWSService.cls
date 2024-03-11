@@ -130,13 +130,3 @@ public with sharing class AWSService {
     }
     
 }
-
-// Code to call AWS server
-/*String key = 'AKIA5XGLQKBNUCGNVQ64'; 
-//S3 Secret Key 
-String secret = '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';
-String bucket = 'lunatustextdatabucket'; 
-String host = 's3-us-east-1.amazonaws.com';
-String method = 'PUT';
-AWSService service = new AWSService(key,secret,bucket,method,host);
-service.UploadDocuments('001F900001ixrTzIAI');*/
