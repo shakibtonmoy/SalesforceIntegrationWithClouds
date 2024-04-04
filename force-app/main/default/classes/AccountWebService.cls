@@ -9,8 +9,7 @@ global with sharing class AccountWebService {
         String website {get; set;}
         String industry {get; set;}
         String annualRevenue {get; set;}
-        String billingCountry {get; set;}
-        String shippingCountry {get; set;}
+        String errorMessage {get; set;}
     }
 
     global class RequestWrapper{
@@ -19,12 +18,16 @@ global with sharing class AccountWebService {
 
     @httpGet
     global static List<AccountInfo> fetchAccounts() {
+        System.debug('UserName From ORG: ' + UserInfo.getUserName());
+        System.debug('User Id From ORG: ' + UserInfo.getUserId());
         RestRequest req = RestContext.request;
         RestResponse res = RestContext.response;
         String methodName = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
         List<AccountInfo> accountInfoList = new List<AccountInfo>();
         if(methodName == 'fetchAccounts'){
-            List<Account> accList = [SELECT Id, Name, Phone, Fax, AccountNumber, Website, Industry, AnnualRevenue, BillingCountry, ShippingCountry FROM Account];
+            List<Account> accList = [SELECT Id, Name, Phone, Fax, AccountNumber, Website, Industry, AnnualRevenue FROM Account
+                                    WHERE OwnerId =: UserInfo.getUserId()];
+
             for (Account acc : accList) {
                 AccountInfo accInfo = new AccountInfo();
                 accInfo.accountId = acc.Id;
@@ -35,14 +38,21 @@ global with sharing class AccountWebService {
                 accInfo.website = acc.Website;
                 accInfo.industry = acc.Industry;
                 accInfo.annualRevenue = String.valueOf(acc.AnnualRevenue);
-                accInfo.billingCountry = acc.BillingCountry;
-                accInfo.shippingCountry = acc.ShippingCountry;
                 
                 accountInfoList.add(accInfo);
             }
+        }if(methodName == 'fetchTasks'){
+            
         }
         
-        return accountInfoList;
+        if(accountInfoList.size() > 0){
+            return accountInfoList;
+        }else{
+            AccountInfo accInfo = new AccountInfo();
+            accInfo.errorMessage = 'No data found';
+            accountInfoList.add(accInfo);
+            return accountInfoList;
+        }
     }
 
     @httpPost
